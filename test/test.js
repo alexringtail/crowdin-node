@@ -1,4 +1,5 @@
 var bodyParser = require('body-parser');
+var busboy = require('connect-busboy');
 var express = require('express');
 var fs = require('graceful-fs');
 var del = require('del');
@@ -13,7 +14,7 @@ var config = {
 var crowdin = new Crowdin(config);
 
 var api = express();
-
+api.use(busboy({ immediate: true }));
 // Generic API calls
 
 api.get('/test/400', function(req, res) {
@@ -83,6 +84,45 @@ var sendZip = 'yaml';
 api.get('/test/download/all.zip', function(req, res) {
     fs.createReadStream(__dirname + '/' + sendZip + '.zip')
     .pipe(res);
+});
+
+// upload
+
+api.post('/test/add-file', function(req, res) {
+  req.pipe(req.busboy);
+  req.busboy.on('file', function(fieldName, file, filename) {
+      filename.should.equal('content.json')
+  });
+  var correct
+  req.busboy.on('field', function(fieldname, val, fieldnameTruncated, valTruncated) {
+      if (fieldname === 'key') {
+          val.should.equal(config.apiKey);
+      }
+  });
+  req.busboy.on('finish', function() {
+
+  });
+
+  res.send();
+});
+
+
+api.post('/test/update-file', function(req, res) {
+  req.pipe(req.busboy);
+  req.busboy.on('file', function(fieldName, file, filename) {
+      filename.should.equal('content.json')
+  });
+  var correct
+  req.busboy.on('field', function(fieldname, val, fieldnameTruncated, valTruncated) {
+      if (fieldname === 'key') {
+          val.should.equal(config.apiKey);
+      }
+  });
+  req.busboy.on('finish', function() {
+
+  });
+
+  res.send();
 });
 
 // Start server
@@ -340,4 +380,28 @@ describe('#downloadToObject', function() {
         })
         .catch(done);
     });
+});
+
+describe('#add-file', function() {
+  it('should upload files', function(done) {
+      sendJson = __dirname + '/'  + 'content.json';
+      crowdin.addFile(sendJson)
+        .then(function() {
+          done();
+        })
+        .catch(done);
+  });
+
+});
+
+describe('#update-file', function() {
+  it('should upload files', function(done) {
+      sendJson = __dirname + '/'  + 'content.json';
+      crowdin.addFile(sendJson)
+        .then(function() {
+          done();
+        })
+        .catch(done);
+  });
+
 });
