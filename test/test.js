@@ -91,6 +91,7 @@ api.get('/test/download/all.zip', function(req, res) {
 api.post('/test/add-file', function(req, res) {
   req.pipe(req.busboy);
   req.busboy.on('file', function(fieldName, file, filename) {
+      fieldName.should.equal('files[content.json]');
       filename.should.equal('content.json')
   });
   var correct
@@ -110,6 +111,7 @@ api.post('/test/add-file', function(req, res) {
 api.post('/test/update-file', function(req, res) {
   req.pipe(req.busboy);
   req.busboy.on('file', function(fieldName, file, filename) {
+      fieldName.should.equal('files[content.json]');
       filename.should.equal('content.json')
   });
   var correct
